@@ -16,17 +16,20 @@ int main()
        graph_set_edge(g, 3, 5, 10);
        graph_set_edge(g, 3, 4, 20);
        graph_set_edge(g, 4, 5, 60); */
-    graph *g_path;
+    graph *g_path, *g_path1;
     g_path = graph_create(g->nvertices);
+    g_path1 = graph_create(g->nvertices);
     for (int i = 0; i < g->nvertices; i++)
-        for (int j = 0; j < g->nvertices; j++)
+        for (int j = 0; j < g->nvertices; j++) {
             g_path->m[i][j] = g->m[i][j];
+            g_path1->m[i][j] = g->m[i][j];
+        }
     // printf("mem = %d\n", sizeof(g));
     // memcpy(g_path, g, sizeof(g) * g->nvertices * g->nvertices);
     // memcpy(g_path, g, 10000000);
     // printm(g_path->m, g_path->nvertices);
     double t = graph_short_path_floyd_serial(g_path);
-    double t1 = graph_short_path_floyd_parallel(g_path);
+    double t1 = graph_short_path_floyd_parallel(g_path1);
     // printm(g_path->m, g_path->nvertices);
     printf("w = %d\n", graph_get_edge(g_path, 1, n));
     printf("Time ser (sec): %.6f\nTime parallel (sec): %.6f\nS(n): %.6f\n", t, t1, t / t1);
