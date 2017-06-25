@@ -24,9 +24,6 @@ int main()
             g_path->m[i][j] = g->m[i][j];
             g_path1->m[i][j] = g->m[i][j];
         }
-    // printf("mem = %d\n", sizeof(g));
-    // memcpy(g_path, g, sizeof(g) * g->nvertices * g->nvertices);
-    // memcpy(g_path, g, 10000000);
     // printm(g_path->m, g_path->nvertices);
     double t = graph_short_path_floyd_serial(g_path);
     double t1 = graph_short_path_floyd_parallel(g_path1);
@@ -34,5 +31,7 @@ int main()
     printf("w = %d\n", graph_get_edge(g_path, 1, n));
     printf("Time ser (sec): %.6f\nTime parallel (sec): %.6f\nS(n): %.6f\n", t, t1, t / t1);
     graph_free(g);
+    graph_free(g_path);
+    graph_free(g_path1);
     return 0;
 }
