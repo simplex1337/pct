@@ -1,13 +1,10 @@
 #include "graph.h"
 
-#define min(x, y) (((x) < (y)) ? (x) : (y))
-
-struct graph *graph_create(int nvertices)
+graph *graph_create(int nvertices)
 {
     struct graph *g;
-    g = malloc(sizeof(*g));
+    g = (struct graph *) malloc(sizeof(*g));
     g->nvertices = nvertices;
-    g->visited = malloc(sizeof(int) * (nvertices + 1));
     g->m = (int **) malloc(nvertices * sizeof(int *));
     if (g->m != NULL) {
         for (int i = 0; i < nvertices; i++) {
@@ -20,20 +17,17 @@ struct graph *graph_create(int nvertices)
     return g;
 }
 
-void graph_clear(struct graph *g)
+void graph_clear(graph * g)
 {
     int i, j;
-    for (i = 0; i < g->nvertices; i++) {
-        g->visited[i] = 0;
-        for (j = 0; j < g->nvertices; j++) {
-            g->m[i][j] = INT_MAX;
-        }
-    }
+    for (i = 0; i < g->nvertices; i++)
+        for (j = 0; j < g->nvertices; j++)
+            g->m[i][j] = 100000;
     for (i = 0; i < g->nvertices; i++)
         g->m[i][i] = 0;
 }
 
-void graph_free(struct graph *g)
+void graph_free(graph * g)
 {
     for (int i = 0; i < g->nvertices; i++)
         free(g->m[i]);
@@ -41,34 +35,59 @@ void graph_free(struct graph *g)
     free(g);
 }
 
-void graph_set_edge(struct graph *g, int i, int j, int w)
+void graph_set_edge(graph * g, int i, int j, int w)
 {
     g->m[i - 1][j - 1] = w;
-    g->m[j - 1][i - 1] = w;
 }
 
-int graph_get_edge(struct graph *g, int i, int j)
+int graph_get_edge(graph * g, int i, int j)
 {
     return g->m[i - 1][j - 1];
 }
 
-int graph_nvertices(struct graph *g)
+void printm(int **matrix, int cnt)      //вывод матрицы на экран
 {
-    return g->nvertices;
+    for (int i = 0; i < cnt; i++) {
+        for (int j = 0; j < cnt; j++) {
+            if (matrix[i][j] == 100000)
+                printf("inf ");
+            else
+                printf("%d ", matrix[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
 }
 
-struct graph *graph_short_path_floyd(struct graph *g)
+double graph_short_path_floyd_serial(graph * g)
 {
-    struct graph *path;
-    path = graph_create(g->nvertices);
-    for (int i = 0; i < path->nvertices; i++)
-        for (int j = 0; j < path->nvertices; j++)
-            path->m[i][j] = g->m[i][j];
-    for (int i = 0; i < path->nvertices; i++)
-        for (int j = 0; j < path->nvertices; j++)
-            for (int k = 0; k < path->nvertices; k++) {
-                if(path->m[j][k] > path->m[j][i] + path->m[i][k])
-                  path->m[j][k] = path->m[j][i] + path->m[i][k];
+    // printm(g->m, g->nvertices);
+    double t = omp_get_wtime();
+    for (int i = 0; i < g->nvertices; i++) {
+        for (int j = 0; j < g->nvertices; j++)
+            for (int k = 0; k < g->nvertices; k++) {
+                if (g->m[j][k] > g->m[j][i] + g->m[i][k])
+                    g->m[j][k] = g->m[j][i] + g->m[i][k];
             }
-    return path;
+        //printm(g->m, g->nvertices);
+    }
+    t = omp_get_wtime() - t;
+    return t;
+    //return g;
+}
+
+double graph_short_path_floyd_parallel(graph * g)
+{
+    double t = omp_get_wtime();
+#pragma omp parallel for schedule(dynamic, 8)
+    for (int i = 0; i < g->nvertices; i++) {
+        for (int j = 0; j < g->nvertices; j++)
+            for (int k = 0; k < g->nvertices; k++) {
+                if (g->m[j][k] > g->m[j][i] + g->m[i][k])
+                    g->m[j][k] = g->m[j][i] + g->m[i][k];
+            }
+    }
+    t = omp_get_wtime() - t;
+    return t;
+    //return g;
 }

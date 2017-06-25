@@ -1,28 +1,35 @@
-#include <stdio.h>
 #include "graph.h"
+#include <string.h>
 
-int main(int argc, char const *argv[])
+int main()
 {
-    struct graph *g;
-    g = graph_create(5);
-    graph_set_edge(g, 1, 2, 10);
-    graph_set_edge(g, 1, 4, 30);
-    graph_set_edge(g, 1, 5, 100);
-    graph_set_edge(g, 2, 3, 50);
-    graph_set_edge(g, 3, 5, 10);
-    graph_set_edge(g, 3, 4, 20);
-    graph_set_edge(g, 4, 5, 60);
-    struct graph *path;
-    path = graph_short_path_floyd(g);
-    printf("w =%d \n", graph_get_edge(path, 1, 2));
-    printf("w =%d \n", graph_get_edge(path, 1, 4));
-    printf("w =%d \n", graph_get_edge(path, 1, 5));
-    printf("w =%d \n", graph_get_edge(path, 2, 3));
-    printf("w =%d \n", graph_get_edge(path, 3, 5));
-    printf("w =%d \n", graph_get_edge(path, 3, 4));
-    printf("w =%d \n", graph_get_edge(path, 5, 5));
-    printf("w =%d \n", graph_get_edge(path, 1, 3));
+    graph *g;
+    int n = 1000;
+    g = graph_create(n);
+    for (int i = 1; i < n; i++) {
+        graph_set_edge(g, i, n, 4);
+    }
+    /*graph_set_edge(g, 1, 2, 10);
+       graph_set_edge(g, 1, 4, 30);
+       graph_set_edge(g, 1, 5, 100);
+       graph_set_edge(g, 2, 3, 50);
+       graph_set_edge(g, 3, 5, 10);
+       graph_set_edge(g, 3, 4, 20);
+       graph_set_edge(g, 4, 5, 60); */
+    graph *g_path;
+    g_path = graph_create(g->nvertices);
+    for (int i = 0; i < g->nvertices; i++)
+        for (int j = 0; j < g->nvertices; j++)
+            g_path->m[i][j] = g->m[i][j];
+    // printf("mem = %d\n", sizeof(g));
+    // memcpy(g_path, g, sizeof(g) * g->nvertices * g->nvertices);
+    // memcpy(g_path, g, 10000000);
+    // printm(g_path->m, g_path->nvertices);
+    double t = graph_short_path_floyd_serial(g_path);
+    double t1 = graph_short_path_floyd_parallel(g_path);
+    // printm(g_path->m, g_path->nvertices);
+    printf("w = %d\n", graph_get_edge(g_path, 1, n));
+    printf("Time ser (sec): %.6f\nTime parallel (sec): %.6f\nS(n): %.6f\n", t, t1, t / t1);
     graph_free(g);
-    graph_free(path);
     return 0;
 }
