@@ -1,16 +1,11 @@
-// #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-// #include <math.h>
-// #include <unistd.h>
 #include <omp.h>
 
 double ts, tp;
 
-int square(int n,               // Number of nodes
-           int* restrict g,     // Partial distance at step s
-           int* restrict gnew)  // Partial distance at step s+1
+int square(int n, int* restrict g, int* restrict gnew)
 {
     int done = 1;
     #pragma omp parallel for shared(g, gnew) reduction(&& : done)
@@ -133,19 +128,11 @@ int main(int argc, char** argv)
     if (genname)
         write_matrix(genname,  n, g);
 
-    double t0 = omp_get_wtime();
     int* gs = shortest_paths_s(n, g);
-    double t1 = omp_get_wtime();
-
-    // double t2 = omp_get_wtime();
     int* gp = shortest_paths_p(n, g);
-    double t3 = omp_get_wtime();
 
-    printf("== OpenMP with %d threads\n", omp_get_max_threads());
+    printf("OpenMP with %d threads\n", omp_get_max_threads());
     printf("n:     %d\n", n);
-    printf("Time:  %.6f\n", t1-t0);
-    // printf("Time ser (sec): %.6f\nTime parallel (sec): %.6f\nS(n): %.6f\n",
-                                          // t1-t0, t3-t1, (t1-t0) / (t3-t1));
     printf("Time ser (sec): %.6f\nTime parallel (sec): %.6f\nS(n): %.6f\n",
                                           ts, tp, ts / tp);
 
