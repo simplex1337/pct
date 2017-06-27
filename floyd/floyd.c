@@ -44,19 +44,19 @@ int* shortest_paths_p(int n, int* restrict g)
 {
     int* restrict gg = (int*) calloc(n*n, sizeof(int));
     memcpy(gg, g, n*n * sizeof(int));
-    tp = omp_get_wtime();
     infinitize(n, gg);
     for (int i = 0; i < n*n; i += n+1)
         gg[i] = 0;
     int* restrict gnew = (int*) calloc(n*n, sizeof(int));
+    tp = omp_get_wtime();
     memcpy(gnew, gg, n*n * sizeof(int));
     for (int done = 0; !done; ) {
         done = square(n, gg, gnew);
-        memcpy(g, gnew, n*n * sizeof(int));
+        memcpy(gg, gnew, n*n * sizeof(int));
     }
+    tp = omp_get_wtime() - tp;
     free(gnew);
     deinfinitize(n, g);
-    tp = omp_get_wtime() - tp;
     return gg;
 }
 
@@ -64,8 +64,8 @@ int* shortest_paths_s(int n, int* restrict g)
 {
     int* restrict gnew = (int*) calloc(n*n, sizeof(int));
     memcpy(gnew, g, n*n * sizeof(int));
-    ts = omp_get_wtime();
     infinitize(n, gnew);
+    ts = omp_get_wtime();
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++)
             for (int k = 0; k < n; k++) {
@@ -73,9 +73,9 @@ int* shortest_paths_s(int n, int* restrict g)
                     gnew[j*n+k] = gnew[j*n+i] + gnew[i*n+k];
             }
     }
+    ts = omp_get_wtime() - ts;
     for (int i = 0; i < n*n; i += n+1)
         gnew[i] = 0;
-    ts = omp_get_wtime() - ts;
     deinfinitize(n, gnew);
     return gnew;
 }
@@ -139,7 +139,7 @@ int main(int argc, char** argv)
     if (sername)
         write_matrix(sername, n, gs);
     if (parname)
-        write_matrix(parname, n, gs);
+        write_matrix(parname, n, gp);
 
     free(g);
     free(gs);
